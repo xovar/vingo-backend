@@ -14,7 +14,7 @@ export const signUp = async (req,res,next) => {
             throw error
         }
 
-        const hashedPassword = bcrypt.hash(password,10);
+        const hashedPassword = await bcrypt.hash(password,10);
 
         const newUser = await User.create({
             fullname,
@@ -41,6 +41,54 @@ export const signUp = async (req,res,next) => {
                 fullname: newUser.fullname,
                 email: newUser.email,
                 role: newUser.role
+              },
+            },
+          });
+
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const signIn = async (req,res,next) => {
+    try {
+        const {email, password} = req.body;
+
+        const isExists = await User.findOne({email});
+    
+        if(!isExists){
+            const error = new Error('Email Address Is Not In Use');
+            error.statusCode = 404;
+            throw error
+        }
+
+        const isCorrect = await bcrypt.compare(password,isExists.password);
+
+        if(!isCorrect){
+            const error = new Error('Invalid Password');
+            error.statusCode = 401;
+            throw error
+        }
+
+        const token = await genToken(isExists._id);
+
+        res.cookie("token",token,{
+            secure: false,
+            sameSite: "strict",
+            maxAge: 7*24*60*60*1000,
+            httpOnly: true
+        })
+
+        res.status(201).json({
+            success: true,
+            message: "Logged In",
+            data: {
+              token: token,
+              user: {
+                fullname: isExists.fullname,
+                email: isExists.email,
+                role: isExists.role
               },
             },
           });
