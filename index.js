@@ -3,7 +3,7 @@ import { PORT } from "./config/env.js";
 import connectDB from "./database/connectDB.js";
 import errorMiddleware from "./middleware/error.middlewares.js";
 import cookieParser from "cookie-parser";
-import authRouter from "./route/auth.routes.js";
+import authRouter from "./routes/auth.routes.js";
 
 const app = express();
 
